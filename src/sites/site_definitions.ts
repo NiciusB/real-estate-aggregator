@@ -4,4 +4,6 @@ export type Listing = {
   eurPrice: number
   roomsCount: number
   squareMeters: number
+  flatFloorNumber?: number
+  houseFloorsCount?: number
 }
