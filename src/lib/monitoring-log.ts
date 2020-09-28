@@ -6,7 +6,7 @@ export enum SEVERITY {
 }
 /* eslint-enable no-unused-vars */
 
-export async function logMessage(message: string | Error, severity: SEVERITY, context?: any) {
+export async function logMessage(message: string | Error, severity: SEVERITY, context: any = '') {
   switch (severity) {
     case SEVERITY.Error: {
       console.error(message, context)
@@ -23,4 +23,5 @@ export async function logMessage(message: string | Error, severity: SEVERITY, co
     default:
       throw new Error('Unknown type')
   }
+  console.log('') // spacing line
 }

@@ -1,15 +1,23 @@
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import { Browser } from 'puppeteer'
+import * as fs from 'fs'
+import getIP from './getIP'
 
 puppeteer.use(StealthPlugin())
 
 let _browser: Browser
 async function getBrowser() {
   if (!_browser) {
+    const proxyUrls = process.env.PROXY_URL.split('|')
+    const proxyUrl = proxyUrls[Math.floor(Math.random() * proxyUrls.length)]
+    console.log(`✨ Proxy: ${proxyUrl}`)
+
     _browser = await puppeteer.launch({
-      args: [`--proxy-server=${process.env.PROXY_URL}`],
+      args: [`--proxy-server=${proxyUrl}`],
     })
+
+    console.log(`✨ IP: ${await getIP()}`)
   }
   return _browser
 }
@@ -22,6 +30,15 @@ async function getNewPage() {
     password: process.env.PROXY_PASS,
   })
   return page
+}
+
+export async function prepareBrowser() {
+  // For last_fetch.jpg
+  if (!fs.existsSync(`${__dirname}/../../logs`)) {
+    fs.mkdirSync(`${__dirname}/../../logs`)
+  }
+
+  await getBrowser()
 }
 
 export default async function proxiedFetch(url: string) {

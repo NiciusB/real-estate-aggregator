@@ -38,6 +38,6 @@ export default function setupCrawlers(options: CrawlOptions) {
   setInterval(crawlAll, 10 * 60 * 1000, options)
 
   if (process.env.NODE_ENV === 'dev') {
-    crawlAll(options)
+    setTimeout(crawlAll, 10, options)
   }
 }
