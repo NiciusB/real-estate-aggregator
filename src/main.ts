@@ -8,7 +8,7 @@ export default async function main() {
   setupCrawlers({
     idealista: [
       {
-        path: 'venta-viviendas/a-coruna-a-coruna',
+        path: 'venta-viviendas/a-coruna-provincia',
       },
     ],
   })

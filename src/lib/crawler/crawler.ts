@@ -1,16 +1,16 @@
-import { ElementHandle } from 'puppeteer'
 import { logMessage, SEVERITY } from '../../lib/monitoring-log'
 import { parseNumber } from '../utils'
 import { Listing, Strategy } from './site_definitions'
 
 export default async function getListingFromElement(
-  elm: ElementHandle<Element>,
+  elm: Element,
   site: string,
   strategies: Strategy[]
 ): Promise<Listing | null> {
-  const text = await elm.evaluate((e) => e.textContent)
-  const result = {
+  const text = elm.textContent
+  const wipListing = {
     id: null,
+    type: null,
     site,
     eurPrice: null,
     roomsCount: null,
@@ -20,6 +20,8 @@ export default async function getListingFromElement(
   await Promise.all(
     strategies.map(async (strategy) => {
       try {
+        if (strategy.guard && !strategy.guard(wipListing)) return
+
         let res = null
         if (strategy.regExp) {
           const regexp = strategy.regExp.exec(text)
@@ -31,14 +33,14 @@ export default async function getListingFromElement(
             throw new Error("Regexp didn't find anything")
           }
         } else if (strategy.function) {
-          res = await elm.evaluate(strategy.function)
+          res = await strategy.function(elm)
         }
 
         if (strategy.type === Number) {
           res = parseNumber(res)
         }
 
-        result[strategy.field] = res
+        wipListing[strategy.field] = res
       } catch (err) {
         err.message = `🐛 [getListingFromElement] ${site} ${strategy.field}: ${err.message}`
         logMessage(err, SEVERITY.Error, text)
@@ -46,5 +48,5 @@ export default async function getListingFromElement(
     })
   )
 
-  return result
+  return wipListing
 }

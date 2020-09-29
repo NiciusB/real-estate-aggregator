@@ -1,6 +1,7 @@
 import puppeteer from 'puppeteer-extra'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import { Browser } from 'puppeteer'
+import { JSDOM } from 'jsdom'
 import * as fs from 'fs'
 import getIP from './getIP'
 
@@ -49,5 +50,6 @@ export default async function proxiedFetch(url: string) {
     await page.screenshot({ path: `${__dirname}/../../logs/last_fetch.jpg` })
   }
 
-  return page
+  const html = await page.$eval('body', (body) => body.innerHTML)
+  return new JSDOM(html).window.document.body
 }
