@@ -17,7 +17,7 @@ export default class Listing extends Model {
   public type!: ListingType
   public siteId!: string
   public eurPrice!: number
-  public roomsCount!: number
+  public roomsCount!: number | null
   public squareMeters!: number
   public flatFloorNumber!: number | null
 }
@@ -47,7 +47,7 @@ Listing.init(
     },
     roomsCount: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
     squareMeters: {
       type: DataTypes.INTEGER,

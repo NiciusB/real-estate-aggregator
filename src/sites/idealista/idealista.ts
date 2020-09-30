@@ -8,9 +8,7 @@ export default async function crawlIdealista(path: string) {
 }
 
 async function getList(path: string): Promise<Listing[]> {
-  logMessage("🔎  Getting idealista's html", SEVERITY.Debug)
-  const body = await proxiedFetch(`https://www.idealista.com/${path}/?ordenado-por=fecha-publicacion-desc`)
-  logMessage("🔎  Got idealista's html", SEVERITY.Debug)
+  const { body } = await proxiedFetch(`https://www.idealista.com/${path}/?ordenado-por=fecha-publicacion-desc`)
 
   if (body.innerHTML.includes('parece que estamos recibiendo muchas peticiones tuyas en poco tiempo')) {
     logMessage('🤖 Bot check on idealista', SEVERITY.Warning)
@@ -31,13 +29,13 @@ async function getList(path: string): Promise<Listing[]> {
           if (/Chalet (pareado|adosado)/i.test(title)) return ListingType.ChaletPareado
           if (/^Dúplex/i.test(title)) return ListingType.Duplex
           if (/^Ático/i.test(title)) return ListingType.Atico
-          if (/^Casa/i.test(title)) return ListingType.Casa
+          if (/^(Casa|Chalet)/i.test(title)) return ListingType.Casa
           if (/^Piso/i.test(title)) return ListingType.Piso
           throw new Error('Unable to find ListingType')
         },
       },
       { field: 'eurPrice', regExp: /([0-9.,]+)€/, type: Number },
-      { field: 'roomsCount', regExp: /([0-9.,]+) hab\./, type: Number },
+      { field: 'roomsCount', regExp: /([0-9.,]+) hab\./, regExpFallback: null, type: Number },
       { field: 'squareMeters', regExp: /([0-9.,]+) m²/, type: Number },
       {
         field: 'flatFloorNumber',
@@ -49,5 +47,7 @@ async function getList(path: string): Promise<Listing[]> {
     ])
   })
 
-  return (await Promise.all(listingPromises)).filter(Boolean)
+  const listings = (await Promise.all(listingPromises)).filter(Boolean)
+
+  return listings
 }

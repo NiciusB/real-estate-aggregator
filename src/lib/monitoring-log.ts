@@ -23,5 +23,4 @@ export async function logMessage(message: string | Error, severity: SEVERITY, co
     default:
       throw new Error('Unknown type')
   }
-  console.log('') // spacing line
 }

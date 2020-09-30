@@ -37,7 +37,7 @@ async function crawlAll(options: CrawlOptions) {
 }
 
 export default function setupCrawlers(options: CrawlOptions) {
-  setInterval(crawlAll, 10 * 60 * 1000, options)
+  setInterval(crawlAll, 60 * 60 * 1000, options)
 
   if (process.env.NODE_ENV === 'dev') {
     setTimeout(crawlAll, 10, options)
