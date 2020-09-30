@@ -8,15 +8,22 @@
     "@types/jsdom": "^16.2.4",
     "@types/node": "^14.11.1",
     "@types/puppeteer": "^3.0.2",
+    "@types/validator": "^13.1.0",
+    "body-parser": "^1.19.0",
     "core-js": "^3.6.5",
     "dotenv": "^8.2.0",
+    "express": "^4.17.1",
     "jsdom": "^16.4.0",
+    "pg": "^8.3.3",
+    "pg-hstore": "^2.3.3",
     "puppeteer": "^5.3.0",
     "puppeteer-extra": "^3.1.15",
     "puppeteer-extra-plugin-stealth": "^2.6.1",
+    "sequelize": "^6.3.5",
     "socks-proxy-agent": "^5.0.0"
   },
   "devDependencies": {
+    "@types/sequelize": "^4.28.9",
     "@typescript-eslint/eslint-plugin": "^4.1.1",
     "@typescript-eslint/parser": "^4.1.1",
     "eslint": "^7.9.0",
@@ -30,8 +37,8 @@
     "nodemon": "^2.0.4",
     "prettier": "^2.1.2",
     "ts-node": "^9.0.0",
-    "typescript": "^4.0.3",
-    "tsconfig-paths": "^3.9.0"
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^4.0.3"
   },
   "scripts": {
     "dev": "nodemon src/index.ts",

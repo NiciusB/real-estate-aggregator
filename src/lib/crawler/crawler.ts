@@ -1,33 +1,43 @@
 import { logMessage, SEVERITY } from '../../lib/monitoring-log'
 import { parseNumber } from '../utils'
-import { Listing, Strategy } from './site_definitions'
+import Listing from '../../../models/Listing'
+
+type Strategy = {
+  field: string
+  type?: NumberConstructor
+
+  /**
+   * If it returns false, we skip getting it's value
+   */
+  guard?: (wipListing: Listing) => boolean
+
+  // regexp strategy
+  regExp?: RegExp
+  regExpFallback?: any
+
+  // function stratey
+  function?: (elm: Element) => any
+}
 
 export default async function getListingFromElement(
   elm: Element,
   site: string,
   strategies: Strategy[]
 ): Promise<Listing | null> {
-  const wipListing = {
-    id: null,
-    type: null,
-    site,
-    eurPrice: null,
-    roomsCount: null,
-    squareMeters: null,
-  }
+  const wipListing = new Listing({ site })
 
-  // Run first field type, because we use it in guards
+  // First of all, get the "type" field, because we use it in guards
   const typeIndex = strategies.findIndex((s) => s.field === 'type')
-  await parseStrategy(strategies[typeIndex], wipListing, site, elm)
+  await parseStrategy(strategies[typeIndex], wipListing, elm)
   strategies.splice(typeIndex, 1)
 
   // Run all the other ones
-  await Promise.all(strategies.map((strategy) => parseStrategy(strategy, wipListing, site, elm)))
+  await Promise.all(strategies.map((strategy) => parseStrategy(strategy, wipListing, elm)))
 
   return wipListing
 }
 
-async function parseStrategy(strategy: Strategy, wipListing: Listing, site: string, elm: Element) {
+async function parseStrategy(strategy: Strategy, wipListing: Listing, elm: Element) {
   const text = elm.textContent
   try {
     if (strategy.guard !== undefined && !strategy.guard(wipListing)) {
@@ -54,7 +64,7 @@ async function parseStrategy(strategy: Strategy, wipListing: Listing, site: stri
 
     wipListing[strategy.field] = res
   } catch (err) {
-    err.message = `🐛 [getListingFromElement] ${site} ${strategy.field}: ${err.message}`
+    err.message = `🐛 [getListingFromElement] ${wipListing.site} ${strategy.field}: ${err.message}`
     logMessage(err, SEVERITY.Error, text)
   }
 }

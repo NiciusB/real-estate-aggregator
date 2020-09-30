@@ -1,3 +1,4 @@
+import Listing from '../../models/Listing'
 import crawlFotocasa from './fotocasa/fotocasa'
 import crawlIdealista from './idealista/idealista'
 import crawlPisosCom from './pisos.com/pisos.com'
@@ -30,8 +31,9 @@ async function crawlAll(options: CrawlOptions) {
     })
   }
 
-  const results = (await Promise.all(promises)).flat()
-  console.log(results)
+  const results = (await Promise.all(promises)).flat() as Listing[]
+
+  await results.map((res) => res.save())
 }
 
 export default function setupCrawlers(options: CrawlOptions) {

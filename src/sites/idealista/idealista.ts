@@ -1,7 +1,7 @@
 import { logMessage, SEVERITY } from '../../lib/monitoring-log'
 import proxiedFetch from '../../lib/proxiedFetch'
-import { Listing, ListingType } from '../../lib/crawler/site_definitions'
 import getListingFromElement from '../../lib/crawler/crawler'
+import Listing, { ListingType } from '../../../models/Listing'
 
 export default async function crawlIdealista(path: string) {
   return getList(path)
@@ -20,7 +20,7 @@ async function getList(path: string): Promise<Listing[]> {
   const listingPromises = Array.from(body.querySelectorAll('main#main-content article.item')).map(async (item) => {
     return getListingFromElement(item, 'idealista', [
       {
-        field: 'id',
+        field: 'siteId',
         function: (elm) => elm.querySelector('a.item-link').getAttribute('href').split('/')[2],
       },
       {
