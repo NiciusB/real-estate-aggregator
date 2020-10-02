@@ -20,15 +20,13 @@ async function getBrowser() {
     }
 
     _browser = await puppeteer.launch({
-      headless: false,
+      headless: true,
       args: [proxyArg],
       defaultViewport: {
         width: 1920,
         height: 1080,
       },
     })
-
-    console.log(`✨ IP: ${await getIP()}`)
   }
   return _browser
 }
@@ -52,12 +50,14 @@ export async function prepareBrowser() {
   }
 
   await getBrowser()
+  console.log(`✨ IP: ${await getIP()}`)
 }
 
 export default async function proxiedFetch(url: string) {
   logMessage(`🔎 Getting ${url}`, SEVERITY.Debug)
   const page = await getNewPage()
-  await page.goto(url)
+  await page.goto(url, { waitUntil: 'networkidle0' })
+  await autoScrollToBottom(page)
   logMessage(`🔎 Got ${url}`, SEVERITY.Debug)
 
   if (process.env.NODE_ENV === 'dev') {
@@ -69,4 +69,33 @@ export default async function proxiedFetch(url: string) {
     page,
     body: new JSDOM(html).window.document.body,
   }
+}
+
+async function autoScrollToBottom(page) {
+  await page.evaluate(async () => {
+    await new Promise((resolve, reject) => {
+      const scrollCheckInterval = 1000
+      const maxScrollTime = 1000 * 25
+
+      let lastHeight = 0
+      const timer = setInterval(() => {
+        const heightNow = document.body.scrollHeight
+        window.scrollBy(0, Number.MAX_SAFE_INTEGER)
+
+        if (lastHeight === heightNow) {
+          end()
+        }
+        lastHeight = heightNow
+      }, scrollCheckInterval)
+
+      const timeout = setTimeout(end, maxScrollTime)
+
+      function end() {
+        clearInterval(timer)
+        clearTimeout(timeout)
+        resolve()
+      }
+    })
+    window.scrollTo(0, 0)
+  })
 }

@@ -9,6 +9,8 @@ export enum ListingType {
   Piso = 'Piso',
   Duplex = 'Duplex',
   Atico = 'Atico',
+  Finca = 'Finca',
+  Desconocido = 'Desconocido',
 }
 
 export default class Listing extends Model {
@@ -33,12 +35,12 @@ Listing.init(
       type: new DataTypes.STRING(128),
       allowNull: false,
     },
-    type: {
-      type: new DataTypes.ENUM(...Object.values(ListingType)),
-      allowNull: false,
-    },
     siteId: {
       type: new DataTypes.STRING(128),
+      allowNull: false,
+    },
+    type: {
+      type: new DataTypes.ENUM(...Object.values(ListingType)),
       allowNull: false,
     },
     eurPrice: {
@@ -61,5 +63,11 @@ Listing.init(
   {
     tableName: 'listings',
     sequelize,
+    indexes: [
+      {
+        unique: true,
+        fields: ['site', 'siteId'],
+      },
+    ],
   }
 )

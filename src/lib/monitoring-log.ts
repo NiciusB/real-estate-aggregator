@@ -6,18 +6,20 @@ export enum SEVERITY {
 }
 /* eslint-enable no-unused-vars */
 
-export async function logMessage(message: string | Error, severity: SEVERITY, context: any = '') {
+export async function logMessage(err: string | Error, severity: SEVERITY, context: any = '') {
+  const message = typeof err === 'string' ? err : err.message
+  const stack = typeof err === 'string' ? '' : err.stack
   switch (severity) {
     case SEVERITY.Error: {
-      console.error(message, context)
+      console.error(message, stack, context)
       break
     }
     case SEVERITY.Warning: {
-      console.warn(message, context)
+      console.warn(message, stack, context)
       break
     }
     case SEVERITY.Debug: {
-      console.debug(message, context)
+      console.debug(message, stack, context)
       break
     }
     default:

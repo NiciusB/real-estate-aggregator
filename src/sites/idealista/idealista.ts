@@ -2,6 +2,7 @@ import { logMessage, SEVERITY } from '../../lib/monitoring-log'
 import proxiedFetch from '../../lib/proxiedFetch'
 import getListingFromElement from '../../lib/crawler/crawler'
 import Listing, { ListingType } from '../../../models/Listing'
+import { titleToListingType } from '../../lib/utils'
 
 export default async function crawlIdealista(path: string) {
   return getList(path)
@@ -19,20 +20,12 @@ async function getList(path: string): Promise<Listing[]> {
     return getListingFromElement(item, 'idealista', [
       {
         field: 'siteId',
+        type: String,
         function: (elm) => elm.querySelector('a.item-link').getAttribute('href').split('/')[2],
       },
       {
         field: 'type',
-        function: (elm) => {
-          const title = elm.querySelector('a.item-link').textContent
-          // TODO: Improve ChaletPareado detections
-          if (/Chalet (pareado|adosado)/i.test(title)) return ListingType.ChaletPareado
-          if (/^Dúplex/i.test(title)) return ListingType.Duplex
-          if (/^Ático/i.test(title)) return ListingType.Atico
-          if (/^(Casa|Chalet)/i.test(title)) return ListingType.Casa
-          if (/^Piso/i.test(title)) return ListingType.Piso
-          throw new Error('Unable to find ListingType')
-        },
+        function: (elm) => titleToListingType(elm.querySelector('a.item-link').textContent),
       },
       { field: 'eurPrice', regExp: /([0-9.,]+)€/, type: Number },
       { field: 'roomsCount', regExp: /([0-9.,]+) hab\./, regExpFallback: null, type: Number },

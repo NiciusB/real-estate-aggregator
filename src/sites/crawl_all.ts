@@ -22,7 +22,7 @@ async function crawlAll(options: CrawlOptions) {
   }
   if (options.fotocasa) {
     options.fotocasa.forEach((opt) => {
-      promises.push(crawlFotocasa())
+      promises.push(crawlFotocasa(opt.path))
     })
   }
   if (options.pisosCom) {
