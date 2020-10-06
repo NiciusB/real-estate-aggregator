@@ -20,7 +20,7 @@ async function getBrowser() {
     }
 
     _browser = await puppeteer.launch({
-      headless: true,
+      headless: false,
       args: [proxyArg],
       defaultViewport: {
         width: 1920,
@@ -56,7 +56,7 @@ export async function prepareBrowser() {
 export default async function proxiedFetch(url: string) {
   logMessage(`🔎 Getting ${url}`, SEVERITY.Debug)
   const page = await getNewPage()
-  await page.goto(url, { waitUntil: 'networkidle0' })
+  const response = await page.goto(url, { waitUntil: 'networkidle0' })
   await autoScrollToBottom(page)
   logMessage(`🔎 Got ${url}`, SEVERITY.Debug)
 
@@ -68,6 +68,7 @@ export default async function proxiedFetch(url: string) {
   return {
     page,
     body: new JSDOM(html).window.document.body,
+    sourceHtml: await response.text(),
   }
 }
 

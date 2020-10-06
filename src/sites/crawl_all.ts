@@ -1,4 +1,5 @@
 import Listing from '../../models/Listing'
+import ListingPictures from '../../models/ListingPictures'
 import crawlFotocasa from './fotocasa/fotocasa'
 import crawlIdealista from './idealista/idealista'
 import crawlPisosCom from './pisos.com/pisos.com'
@@ -13,7 +14,10 @@ type CrawlOptions = {
 }
 
 async function crawlAll(options: CrawlOptions) {
-  const promises = []
+  const promises: Promise<{
+    listings: Listing[]
+    listingPictures: ListingPictures[]
+  }>[] = []
 
   if (options.idealista) {
     options.idealista.forEach((opt) => {
@@ -31,9 +35,21 @@ async function crawlAll(options: CrawlOptions) {
     })
   }
 
-  const results = (await Promise.all(promises)).flat() as Listing[]
+  const results = await Promise.all(promises)
 
-  await results.map((res) => res.save())
+  // Save to DB
+  await Promise.all(
+    results
+      .map((res) => res.listings)
+      .flat()
+      .map((res) => res.save())
+  )
+  await Promise.all(
+    results
+      .map((res) => res.listingPictures)
+      .flat()
+      .map((res) => res.save())
+  )
 }
 
 export default function setupCrawlers(options: CrawlOptions) {

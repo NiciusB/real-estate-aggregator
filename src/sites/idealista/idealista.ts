@@ -3,17 +3,18 @@ import proxiedFetch from '../../lib/proxiedFetch'
 import getListingFromElement from '../../lib/crawler/crawler'
 import Listing, { ListingType } from '../../../models/Listing'
 import { titleToListingType } from '../../lib/utils'
+import ListingPictures from '../../../models/ListingPictures'
 
 export default async function crawlIdealista(path: string) {
   return getList(path)
 }
 
-async function getList(path: string): Promise<Listing[]> {
-  const { body } = await proxiedFetch(`https://www.idealista.com/${path}/?ordenado-por=fecha-publicacion-desc`)
+async function getList(path: string): Promise<{ listings: Listing[]; listingPictures: ListingPictures[] }> {
+  const { page, body } = await proxiedFetch(`https://www.idealista.com/${path}/?ordenado-por=fecha-publicacion-desc`)
 
   if (body.innerHTML.includes('parece que estamos recibiendo muchas peticiones tuyas en poco tiempo')) {
     logMessage('🤖 Bot check on idealista', SEVERITY.Warning)
-    return []
+    return null
   }
 
   const listingPromises = Array.from(body.querySelectorAll('main#main-content article.item')).map(async (item) => {
@@ -42,5 +43,25 @@ async function getList(path: string): Promise<Listing[]> {
 
   const listings = (await Promise.all(listingPromises)).filter(Boolean)
 
-  return listings
+  const rawListingPictures = (await page.evaluate(
+    `Object.entries(listingMultimediaGallery)
+      .map(([key, val]) => ({ listingId: key, picUrls: val.map(a => a.src) }))
+      `
+  )) as [{ listingId: string; picUrls: string[] }]
+
+  const listingPictures = await Promise.all(
+    rawListingPictures
+      .map((singleListingPics) =>
+        singleListingPics.picUrls.map(async (originalUrl) => {
+          return (
+            await ListingPictures.findOrBuild({
+              where: { listingId: singleListingPics.listingId, originalUrl },
+            })
+          )[0]
+        })
+      )
+      .flat()
+  )
+
+  return { listings, listingPictures }
 }
