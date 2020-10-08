@@ -8,29 +8,7 @@ import { logMessage, SEVERITY } from './monitoring-log'
 
 puppeteer.use(StealthPlugin())
 
-let _browser: Browser
-async function getBrowser() {
-  if (!_browser) {
-    let proxyArg = ''
-    if (process.env.PROXY_URL) {
-      const proxyUrls = process.env.PROXY_URL.split('|')
-      const proxyUrl = proxyUrls[Math.floor(Math.random() * proxyUrls.length)]
-      console.log(`✨ Proxy: ${proxyUrl}`)
-      proxyArg = `--proxy-server=${proxyUrl}`
-    }
-
-    _browser = await puppeteer.launch({
-      headless: false,
-      args: [proxyArg],
-      defaultViewport: {
-        width: 1920,
-        height: 1080,
-      },
-    })
-  }
-  return _browser
-}
-
+// === Page stuff ===
 async function getNewPage() {
   const browser = await getBrowser()
   const page = await browser.newPage()
@@ -41,16 +19,6 @@ async function getNewPage() {
   })
 
   return page
-}
-
-export async function prepareBrowser() {
-  // For last_fetch.jpg
-  if (!fs.existsSync(`${__dirname}/../../logs`)) {
-    fs.mkdirSync(`${__dirname}/../../logs`)
-  }
-
-  await getBrowser()
-  console.log(`✨ IP: ${await getIP()}`)
 }
 
 export default async function proxiedFetch(url: string) {
@@ -99,4 +67,52 @@ async function autoScrollToBottom(page) {
     })
     window.scrollTo(0, 0)
   })
+}
+
+// === Browser stuff ===
+const MAX_BROWSER_LIFETIME_MS = 1000 * 60
+
+export async function prepareBrowser() {
+  // For last_fetch.jpg
+  if (!fs.existsSync(`${__dirname}/../../logs`)) {
+    fs.mkdirSync(`${__dirname}/../../logs`)
+  }
+
+  await getBrowser()
+  console.log(`✨ IP: ${await getIP()}`)
+}
+
+let _browser: Browser
+let _browserCreatedAt: number
+async function getBrowser() {
+  if (!_browser) {
+    let proxyArg = ''
+    if (process.env.PROXY_URL) {
+      const proxyUrls = process.env.PROXY_URL.split('|')
+      const proxyUrl = proxyUrls[Math.floor(Math.random() * proxyUrls.length)]
+      console.log(`✨ Proxy: ${proxyUrl}`)
+      proxyArg = `--proxy-server=${proxyUrl}`
+    }
+
+    _browserCreatedAt = Date.now()
+    _browser = await puppeteer.launch({
+      headless: true,
+      args: [proxyArg],
+      defaultViewport: {
+        width: 1920,
+        height: 1080,
+      },
+    })
+  }
+
+  if (Date.now() - _browserCreatedAt > MAX_BROWSER_LIFETIME_MS) {
+    await renewBrowser()
+  }
+
+  return _browser
+}
+
+function renewBrowser() {
+  _browser = null
+  return getBrowser().then(() => undefined)
 }

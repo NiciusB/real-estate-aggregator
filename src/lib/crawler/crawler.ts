@@ -74,6 +74,10 @@ async function parseStrategyRaw(strategy: Strategy, elm: Element) {
     res = await strategy.function(elm)
   }
 
+  if (res === null) {
+    return res
+  }
+
   if (strategy.type === Number) {
     res = parseNumber(res)
   } else if (strategy.type === String) {

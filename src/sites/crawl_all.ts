@@ -1,5 +1,6 @@
 import Listing from '../../models/Listing'
 import ListingPictures from '../../models/ListingPictures'
+import { logMessage, SEVERITY } from '../lib/monitoring-log'
 import crawlFotocasa from './fotocasa/fotocasa'
 import crawlIdealista from './idealista/idealista'
 import crawlPisosCom from './pisos.com/pisos.com'
@@ -31,29 +32,36 @@ async function crawlAll(options: CrawlOptions) {
   }
   if (options.pisosCom) {
     options.pisosCom.forEach((opt) => {
-      promises.push(crawlPisosCom())
+      promises.push(crawlPisosCom(opt.path))
     })
   }
 
-  const results = await Promise.all(promises)
+  const results = (await Promise.allSettled(promises))
+    .map((p) => (p.status === 'fulfilled' ? p.value : null))
+    .filter(Boolean)
+
+  logMessage('🐸 Finished crawling all sites!', SEVERITY.Debug)
 
   // Save to DB
-  await Promise.all(
+  await Promise.allSettled(
     results
       .map((res) => res.listings)
       .flat()
       .map((res) => res.save())
   )
-  await Promise.all(
+  await Promise.allSettled(
     results
       .map((res) => res.listingPictures)
       .flat()
       .map((res) => res.save())
   )
+
+  logMessage('🐸 Finished saving new data!', SEVERITY.Debug)
 }
 
 export default function setupCrawlers(options: CrawlOptions) {
-  setInterval(crawlAll, 60 * 60 * 1000, options)
+  const FETCH_INTERVAL_MS = 1000 * 60 * 10 // 10min
+  setInterval(crawlAll, FETCH_INTERVAL_MS, options)
 
   if (process.env.NODE_ENV === 'dev') {
     setTimeout(crawlAll, 10, options)
