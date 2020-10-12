@@ -1,0 +1,14 @@
+{
+  "apps": [
+      {
+          "name": "real_estate_aggregator",
+          "script": "src/index.ts",
+          "watch": true,
+          "interpreter": "node_modules/.bin/ts-node",
+          "ignore_watch":["logs"],
+          "env": {
+              "NODE_ENV": "prod"
+          }
+      }
+  ]
+}
