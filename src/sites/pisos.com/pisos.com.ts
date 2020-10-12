@@ -66,10 +66,13 @@ async function getList(
     return { listing, listingPictures }
   })
 
-  const rawListings = (await Promise.all(listingPromises)).filter(Boolean)
+  const rawListings = await Promise.all(listingPromises)
 
   return {
-    listings: rawListings.map((l) => l.listing),
-    listingPictures: rawListings.map((l) => l.listingPictures).flat(),
+    listings: rawListings.map((l) => l.listing).filter(Boolean),
+    listingPictures: rawListings
+      .map((l) => l.listingPictures)
+      .flat()
+      .filter(Boolean),
   }
 }

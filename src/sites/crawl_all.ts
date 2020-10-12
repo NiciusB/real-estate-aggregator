@@ -48,13 +48,13 @@ async function crawlAll(options: CrawlOptions) {
     results
       .map((res) => res.listings)
       .flat()
-      .map((res) => res.save())
+      .map((res) => res?.save())
   )
   await Promise.allSettled(
     results
       .map((res) => res.listingPictures)
       .flat()
-      .map((res) => res.save())
+      .map((res) => res?.save())
   )
 
   logMessage('🐸 Finished saving new data!', SEVERITY.Debug)
