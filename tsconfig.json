@@ -7,6 +7,7 @@
       "DOM", "ES2017", "ES2020.Promise", "ES2019.Array"
     ],
     "moduleResolution": "node",
+    "module": "commonjs",
     "esModuleInterop": true,
     "resolveJsonModule": true
   }

@@ -1,8 +1,8 @@
-import { Sequelize } from 'sequelize'
+import { Sequelize, Dialect } from 'sequelize'
 
-export const sequelize = new Sequelize('real_estate_aggregator', 'postgres', '4040', {
+export const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, process.env.DB_PASSWORD, {
   logging: false,
-  dialect: 'postgres',
-  host: 'localhost',
-  port: 5432,
+  dialect: process.env.DB_DIALECT as Dialect,
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT),
 })
