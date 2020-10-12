@@ -15,6 +15,7 @@ export default async function main() {
   setupCrawlers({
     idealista: [
       {
+        locationClue: 'A Coruña, Galicia',
         path: 'venta-viviendas/a-coruna-provincia',
       },
     ],
@@ -26,6 +27,7 @@ export default async function main() {
     ],
     pisosCom: [
       {
+        locationClue: 'A Coruña, Galicia',
         path: 'venta/pisos-area_de_a_coruna',
       },
     ],

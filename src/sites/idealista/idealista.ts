@@ -5,11 +5,14 @@ import Listing, { ListingType } from '../../../models/Listing'
 import { titleToListingType } from '../../lib/utils'
 import ListingPictures from '../../../models/ListingPictures'
 
-export default async function crawlIdealista(path: string) {
-  return getList(path)
+export default async function crawlIdealista(path: string, locationClue: string) {
+  return getList(path, locationClue)
 }
 
-async function getList(path: string): Promise<{ listings: Listing[]; listingPictures: ListingPictures[] }> {
+async function getList(
+  path: string,
+  locationClue: string
+): Promise<{ listings: Listing[]; listingPictures: ListingPictures[] }> {
   const { page, body } = await proxiedFetch(`https://www.idealista.com/${path}/?ordenado-por=fecha-publicacion-desc`)
 
   if (body.innerHTML.includes('parece que estamos recibiendo muchas peticiones tuyas en poco tiempo')) {
@@ -18,7 +21,7 @@ async function getList(path: string): Promise<{ listings: Listing[]; listingPict
   }
 
   const listingPromises = Array.from(body.querySelectorAll('main#main-content article.item')).map(async (item) => {
-    return getListingFromElement(item, 'idealista', [
+    return getListingFromElement(item, 'idealista', locationClue, [
       {
         field: 'siteId',
         type: String,
@@ -27,6 +30,11 @@ async function getList(path: string): Promise<{ listings: Listing[]; listingPict
       {
         field: 'type',
         function: (elm) => titleToListingType(elm.querySelector('a.item-link').textContent),
+      },
+      {
+        field: 'location',
+        function: (elm) => elm.querySelector('a.item-link').textContent.replace(/^(.+?) en /, ''),
+        type: String,
       },
       { field: 'eurPrice', regExp: /([0-9.,]+)€/, type: Number },
       { field: 'roomsCount', regExp: /([0-9.,]+) hab\./, regExpFallback: null, type: Number },

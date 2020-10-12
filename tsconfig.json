@@ -2,9 +2,9 @@
   "setupFiles": ["core-js"],
   "compilerOptions": {
     "outDir": "dist",
-    "target": "ES2020",
+    "target": "ES2017",
     "lib": [
-      "DOM", "ES2020"
+      "DOM", "ES2017", "ES2020.Promise", "ES2019.Array"
     ],
     "moduleResolution": "node",
     "esModuleInterop": true,

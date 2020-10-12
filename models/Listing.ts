@@ -22,6 +22,10 @@ export default class Listing extends Model {
   public roomsCount!: number | null
   public squareMeters!: number | null
   public flatFloorNumber!: number | null
+  public location!: string
+  public latitude!: number | null
+  public longitude!: number | null
+  public areCoordiantesAccurate!: boolean | null
 }
 
 Listing.init(
@@ -57,6 +61,22 @@ Listing.init(
     },
     flatFloorNumber: {
       type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    location: {
+      type: new DataTypes.STRING(256),
+      allowNull: false,
+    },
+    latitude: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    longitude: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    areCoordiantesAccurate: {
+      type: DataTypes.BOOLEAN,
       allowNull: true,
     },
   },

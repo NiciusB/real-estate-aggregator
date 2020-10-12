@@ -1,67 +1,63 @@
 import proxiedFetch from '../../lib/proxiedFetch'
-import getListingFromElement from '../../lib/crawler/crawler'
 import Listing from '../../../models/Listing'
-import { titleToListingType } from '../../lib/utils'
+import { parseNumber, titleToListingType } from '../../lib/utils'
 import ListingPictures from '../../../models/ListingPictures'
 import { FotocasaApi } from './fotocasa.types'
+import { logMessage, SEVERITY } from '../../lib/monitoring-log'
 
 export default async function crawlFotocasa(path: string) {
   return getList(path)
 }
 
 async function getList(path: string): Promise<{ listings: Listing[]; listingPictures: ListingPictures[] }> {
-  const { body, sourceHtml } = await proxiedFetch(`https://www.fotocasa.es/es/${path}`)
+  const { sourceHtml } = await proxiedFetch(`https://www.fotocasa.es/es/${path}`)
 
-  // TODO: Reemplace html scraping with apiRealEstates, which already has everything nicely formatted
-
-  const listingPromises = Array.from(body.querySelectorAll('.re-Searchresult .re-Searchresult-itemRow')).map(
-    async (item) => {
-      if (!item.querySelector('.re-Card-price')) return false // It's an ad
-
-      return getListingFromElement(item, 'fotocasa', [
-        {
-          field: 'siteId',
-          type: String,
-          function: (elm) =>
-            elm
-              .querySelector('.re-Card-primary a')
-              .getAttribute('href')
-              .split('/')
-              .map((num) => parseInt(num))
-              .filter(Boolean)[0],
-        },
-        {
-          field: 'type',
-          function: (elm) => titleToListingType(elm.querySelector('.re-Card-title span').textContent),
-        },
-        { field: 'eurPrice', regExp: /([0-9.,]+) €/, type: Number },
-        { field: 'roomsCount', regExp: /([0-9.,]+) habs?\./, regExpFallback: null, type: Number },
-        { field: 'squareMeters', regExp: /([0-9.,]+) m²/, type: Number },
-      ])
-    }
-  )
-
-  const listings = (await Promise.all(listingPromises)).filter(Boolean) as Listing[]
-
-  const nextInitialProps = JSON.parse(
+  const apiListings = JSON.parse(
     /window\.__INITIAL_PROPS__ = JSON\.parse\("(.*[^\\])"\)/.exec(sourceHtml)[1].replace(/\\(.)/g, '$1')
-  )
+  ).initialSearch.result.realEstates as FotocasaApi.RootObject[]
 
-  const apiRealEstates = nextInitialProps.initialSearch.result.realEstates as FotocasaApi.Realestate[]
+  const listingPictures: ListingPictures[] = []
 
-  const listingPictures = await Promise.all(
-    apiRealEstates
-      .map((realEstate) =>
+  const listingPromises = apiListings.map(async (realEstate) => {
+    try {
+      const site = 'fotocasa'
+      const siteId = realEstate.id + ''
+
+      const [listing] = await Listing.findOrBuild({
+        where: { site, siteId },
+      })
+
+      // Fill data using their data structure
+      listing.type = titleToListingType(realEstate.buildingSubtype)
+      listing.eurPrice = parseNumber(realEstate.price)
+      listing.roomsCount = realEstate.features.find((f) => f.key === 'rooms')?.value
+      listing.squareMeters = realEstate.features.find((f) => f.key === 'surface')?.value
+      listing.flatFloorNumber = realEstate.features.find((f) => f.key === 'floor')?.value
+
+      listing.location = realEstate.location
+      listing.latitude = realEstate.coordinates.latitude
+      listing.longitude = realEstate.coordinates.longitude
+      listing.areCoordiantesAccurate = realEstate.coordinates.accuracy === 1
+
+      // Add pics to listingPictures
+      await Promise.allSettled(
         realEstate.multimedia.map(async (multimedia) => {
-          return (
+          listingPictures.push(
             await ListingPictures.findOrBuild({
               where: { listingId: realEstate.id, originalUrl: multimedia.src },
-            })
-          )[0]
+            })[0]
+          )
         })
       )
-      .flat()
-  )
+
+      return listing
+    } catch (err) {
+      logMessage(err, SEVERITY.Error)
+      return false
+    }
+  })
+
+  const listings = (await Promise.all(listingPromises)).filter((listing): listing is Listing => Boolean(listing))
 
   return { listings, listingPictures }
 }

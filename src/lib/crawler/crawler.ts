@@ -1,6 +1,7 @@
 import { logMessage, SEVERITY } from '../../lib/monitoring-log'
 import { parseNumber } from '../utils'
 import Listing from '../../../models/Listing'
+import geocodingApi from '../geocodingApi'
 
 type Strategy = {
   field: string
@@ -22,6 +23,7 @@ type Strategy = {
 export default async function getListingFromElement(
   elm: Element,
   site: string,
+  locationClue: string,
   strategies: Strategy[]
 ): Promise<Listing | null> {
   const siteIdIndex = strategies.findIndex((s) => s.field === 'siteId')
@@ -41,48 +43,58 @@ export default async function getListingFromElement(
   await Promise.all(strategies.map((strategy) => parseStrategy(strategy, elm, listing)))
 
   return listing
-}
 
-async function parseStrategy(strategy: Strategy, elm: Element, wipListing: Listing) {
-  const text = elm.textContent
-  try {
-    if (strategy.guard !== undefined && !strategy.guard(wipListing)) {
-      return
+  async function parseStrategy(strategy: Strategy, elm: Element, wipListing: Listing) {
+    const text = elm.textContent
+    try {
+      if (strategy.guard !== undefined && !strategy.guard(wipListing)) {
+        return
+      }
+
+      wipListing[strategy.field] = await parseStrategyRaw(strategy, elm)
+
+      // We only use getListingFromElement for parsing user interfaces, and they don't have the exact coordinates, so we get them from the location string
+      if (strategy.field === 'location') {
+        try {
+          const coordinates = await geocodingApi(wipListing.location + ' ' + locationClue)
+          wipListing.latitude = coordinates.lat
+          wipListing.longitude = coordinates.lng
+          wipListing.areCoordiantesAccurate = false
+        } catch (err) {}
+      }
+    } catch (err) {
+      err.message = `🐛 [getListingFromElement] ${wipListing.site} ${strategy.field}: ${err.message}`
+      logMessage(err, SEVERITY.Error, text)
     }
-
-    wipListing[strategy.field] = await parseStrategyRaw(strategy, elm)
-  } catch (err) {
-    err.message = `🐛 [getListingFromElement] ${wipListing.site} ${strategy.field}: ${err.message}`
-    logMessage(err, SEVERITY.Error, text)
-  }
-}
-
-async function parseStrategyRaw(strategy: Strategy, elm: Element) {
-  const text = elm.textContent
-
-  let res = null
-  if (strategy.regExp) {
-    const regexp = strategy.regExp.exec(text)
-    if (regexp && regexp.length >= 2) {
-      res = regexp[1]
-    } else if (strategy.regExpFallback !== undefined) {
-      res = strategy.regExpFallback
-    } else {
-      throw new Error("Regexp didn't find anything")
-    }
-  } else if (strategy.function) {
-    res = await strategy.function(elm)
   }
 
-  if (res === null) {
+  async function parseStrategyRaw(strategy: Strategy, elm: Element) {
+    const text = elm.textContent
+
+    let res = null
+    if (strategy.regExp) {
+      const regexp = strategy.regExp.exec(text)
+      if (regexp && regexp.length >= 2) {
+        res = regexp[1]
+      } else if (strategy.regExpFallback !== undefined) {
+        res = strategy.regExpFallback
+      } else {
+        throw new Error("Regexp didn't find anything")
+      }
+    } else if (strategy.function) {
+      res = await strategy.function(elm)
+    }
+
+    if (res === null) {
+      return res
+    }
+
+    if (strategy.type === Number) {
+      res = parseNumber(res)
+    } else if (strategy.type === String) {
+      res = res + ''
+    }
+
     return res
   }
-
-  if (strategy.type === Number) {
-    res = parseNumber(res)
-  } else if (strategy.type === String) {
-    res = res + ''
-  }
-
-  return res
 }

@@ -7,6 +7,7 @@ import crawlPisosCom from './pisos.com/pisos.com'
 
 type SiteOptions = {
   path: string
+  locationClue?: string
 }
 type CrawlOptions = {
   idealista?: SiteOptions[]
@@ -22,7 +23,7 @@ async function crawlAll(options: CrawlOptions) {
 
   if (options.idealista) {
     options.idealista.forEach((opt) => {
-      promises.push(crawlIdealista(opt.path))
+      promises.push(crawlIdealista(opt.path, opt.locationClue))
     })
   }
   if (options.fotocasa) {
@@ -32,7 +33,7 @@ async function crawlAll(options: CrawlOptions) {
   }
   if (options.pisosCom) {
     options.pisosCom.forEach((opt) => {
-      promises.push(crawlPisosCom(opt.path))
+      promises.push(crawlPisosCom(opt.path, opt.locationClue))
     })
   }
 

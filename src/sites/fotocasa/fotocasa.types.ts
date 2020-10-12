@@ -32,7 +32,7 @@ export declare module FotocasaApi {
     src: string
   }
 
-  export interface Realestate {
+  export interface RootObject {
     accuracy: boolean
     buildingSubtype: string
     buildingType: string
