@@ -112,7 +112,8 @@ async function getBrowser() {
   return _browser
 }
 
-function renewBrowser() {
+async function renewBrowser() {
+  await _browser.close()
   _browser = null
   return getBrowser().then(() => undefined)
 }
