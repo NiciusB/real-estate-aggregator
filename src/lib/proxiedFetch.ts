@@ -82,46 +82,49 @@ export async function prepareBrowser() {
   console.log(`✨ IP: ${await getIP()}`)
 }
 
-let _browser: Browser
-let _browserCreatedAt: number
+let _browserPromise: Promise<Browser> = null
+let _browserCreatedAt: number = null
 async function getBrowser() {
-  if (!_browser) {
-    let proxyArg = ''
-    if (process.env.PROXY_URL) {
-      const proxyUrls = process.env.PROXY_URL.split('|')
-      const proxyUrl = proxyUrls[Math.floor(Math.random() * proxyUrls.length)]
-      console.log(`✨ Proxy: ${proxyUrl}`)
-      proxyArg = `--proxy-server=${proxyUrl}`
-    }
-
-    _browserCreatedAt = Date.now()
-    _browser = await puppeteer.launch({
-      headless: true,
-      args: [proxyArg],
-      defaultViewport: {
-        width: 1920,
-        height: 1080,
-      },
-    })
+  if (!_browserPromise) {
+    _browserPromise = createBrowserAsync()
   }
-
   if (Date.now() - _browserCreatedAt > MAX_BROWSER_LIFETIME_MS) {
-    await renewBrowser()
+    await closeBrowser()
   }
 
-  return _browser
+  return await _browserPromise
 }
 
-async function renewBrowser() {
+function createBrowserAsync() {
+  let proxyArg = ''
+  if (process.env.PROXY_URL) {
+    const proxyUrls = process.env.PROXY_URL.split('|')
+    const proxyUrl = proxyUrls[Math.floor(Math.random() * proxyUrls.length)]
+    console.log(`✨ Proxy: ${proxyUrl}`)
+    proxyArg = `--proxy-server=${proxyUrl}`
+  }
+
+  _browserCreatedAt = Date.now()
+  return puppeteer.launch({
+    headless: true,
+    args: [proxyArg],
+    defaultViewport: {
+      width: 1920,
+      height: 1080,
+    },
+  })
+}
+
+async function closeBrowser() {
+  const browser = await _browserPromise
+
   // Close tabs
-  for (const page of await _browser.pages()) {
+  for (const page of await browser.pages()) {
     await page.close()
   }
 
   // Close browser
-  await _browser.close()
+  await browser.close()
 
-  // Renew browser
-  _browser = null
-  return getBrowser().then(() => undefined)
+  _browserPromise = createBrowserAsync()
 }
