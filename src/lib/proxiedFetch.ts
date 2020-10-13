@@ -90,6 +90,7 @@ async function getBrowser() {
   }
   if (Date.now() - _browserCreatedAt > MAX_BROWSER_LIFETIME_MS) {
     await closeBrowser()
+    _browserPromise = createBrowserAsync()
   }
 
   return await _browserPromise
@@ -125,6 +126,4 @@ async function closeBrowser() {
 
   // Close browser
   await browser.close()
-
-  _browserPromise = createBrowserAsync()
 }
