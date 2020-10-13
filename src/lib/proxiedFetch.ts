@@ -70,7 +70,7 @@ async function autoScrollToBottom(page) {
 }
 
 // === Browser stuff ===
-const MAX_BROWSER_LIFETIME_MS = 1000 * 60
+const MAX_BROWSER_LIFETIME_MS = 1000 * 60 * 9
 
 export async function prepareBrowser() {
   // For last_fetch.jpg
@@ -113,7 +113,15 @@ async function getBrowser() {
 }
 
 async function renewBrowser() {
+  // Close tabs
+  for (const page of await _browser.pages()) {
+    await page.close()
+  }
+
+  // Close browser
   await _browser.close()
+
+  // Renew browser
   _browser = null
   return getBrowser().then(() => undefined)
 }
