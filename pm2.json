@@ -3,6 +3,7 @@
       {
           "name": "real_estate_aggregator",
           "script": "src/index.ts",
+          "max_memory_restart": "2G",
           "watch": true,
           "interpreter": "node_modules/.bin/ts-node",
           "ignore_watch":["logs"],
