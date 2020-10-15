@@ -36,6 +36,7 @@ export default async function proxiedFetch(url: string) {
   return {
     page,
     body: new JSDOM(html).window.document.body,
+    response,
     sourceHtml: await response.text(),
   }
 }

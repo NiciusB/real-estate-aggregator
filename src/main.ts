@@ -1,4 +1,5 @@
 import { sequelize } from './db'
+import { setupDownloadListingImageTimer } from './downloadListingImages'
 import { prepareBrowser } from './lib/proxiedFetch'
 import setupCrawlers from './sites/crawl_all'
 
@@ -8,10 +9,13 @@ export default async function main() {
   // Connect to db
   await sequelize.authenticate()
   await sequelize.sync()
-
   // Prepare puppeteer
   await prepareBrowser()
 
+  // Download images
+  setupDownloadListingImageTimer()
+
+  // Setup crawlers
   setupCrawlers({
     idealista: [
       {

@@ -5,6 +5,8 @@ export default class ListingPictures extends Model {
   public id!: number
   public listingId!: number
   public originalUrl!: string
+  public imgBlob!: Buffer
+  public imgHash!: string
 }
 
 ListingPictures.init(
@@ -22,6 +24,14 @@ ListingPictures.init(
       type: new DataTypes.STRING(128),
       allowNull: false,
     },
+    imgBlob: {
+      type: DataTypes.BLOB,
+      allowNull: true,
+    },
+    imgHash: {
+      type: new DataTypes.STRING(512),
+      allowNull: true,
+    },
   },
   {
     tableName: 'listing_pictures',
@@ -30,6 +40,9 @@ ListingPictures.init(
       {
         unique: true,
         fields: ['listingId', 'originalUrl'],
+      },
+      {
+        fields: ['imgHash'],
       },
     ],
   }
