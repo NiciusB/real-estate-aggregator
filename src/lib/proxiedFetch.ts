@@ -78,18 +78,17 @@ export async function prepareBrowser() {
     fs.mkdirSync(`${__dirname}/../../logs`)
   }
 
-  await getBrowser()
   console.log(`✨ IP: ${await getIP()}`)
 }
 
 let _browserPromise: Promise<Browser> = null
 let _browserCreatedAt: number = null
 async function getBrowser() {
-  if (!_browserPromise) {
-    _browserPromise = createBrowserAsync()
+  if (_browserPromise && Date.now() - _browserCreatedAt > MAX_BROWSER_LIFETIME_MS) {
+    closeBrowser(_browserPromise)
+    _browserPromise = null
   }
-  if (Date.now() - _browserCreatedAt > MAX_BROWSER_LIFETIME_MS) {
-    await closeBrowser()
+  if (!_browserPromise) {
     _browserPromise = createBrowserAsync()
   }
 
@@ -116,8 +115,8 @@ function createBrowserAsync() {
   })
 }
 
-async function closeBrowser() {
-  const browser = await _browserPromise
+async function closeBrowser(browserPromise) {
+  const browser = await browserPromise
 
   // Close tabs
   for (const page of await browser.pages()) {

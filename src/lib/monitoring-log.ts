@@ -7,6 +7,10 @@ export enum SEVERITY {
 /* eslint-enable no-unused-vars */
 
 export async function logMessage(err: string | Error, severity: SEVERITY, context: any = '') {
+  if (process.env.NODE_ENV === 'prod' && severity === SEVERITY.Debug) {
+    return
+  }
+
   const message = typeof err === 'string' ? err : err.message
   const stack = typeof err === 'string' ? '' : err.stack
   switch (severity) {
