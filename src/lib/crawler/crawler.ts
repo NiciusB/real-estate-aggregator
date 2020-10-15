@@ -42,6 +42,17 @@ export default async function getListingFromElement(
   // Run all the other ones
   await Promise.all(strategies.map((strategy) => parseStrategy(strategy, elm, listing)))
 
+  // We only use getListingFromElement for parsing user interfaces, and they don't have the exact coordinates, so we get them from the location string
+  // We skip it if the listing already exists, because we don't want to make unnecessary API requests
+  if (listing.isNewRecord && listing.location) {
+    try {
+      const coordinates = await geocodingApi(listing.location + ' ' + locationClue)
+      listing.latitude = coordinates.lat
+      listing.longitude = coordinates.lng
+      listing.areCoordiantesAccurate = false
+    } catch (err) {}
+  }
+
   return listing
 
   async function parseStrategy(strategy: Strategy, elm: Element, wipListing: Listing) {
@@ -52,16 +63,6 @@ export default async function getListingFromElement(
       }
 
       wipListing[strategy.field] = await parseStrategyRaw(strategy, elm)
-
-      // We only use getListingFromElement for parsing user interfaces, and they don't have the exact coordinates, so we get them from the location string
-      if (strategy.field === 'location') {
-        try {
-          const coordinates = await geocodingApi(wipListing.location + ' ' + locationClue)
-          wipListing.latitude = coordinates.lat
-          wipListing.longitude = coordinates.lng
-          wipListing.areCoordiantesAccurate = false
-        } catch (err) {}
-      }
     } catch (err) {
       err.message = `🐛 [getListingFromElement] ${wipListing.site} ${strategy.field}: ${err.message}`
       logMessage(err, SEVERITY.Error, text)
