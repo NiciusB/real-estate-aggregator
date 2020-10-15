@@ -16,7 +16,7 @@ module.exports = {
           'listing_pictures',
           'imgHash',
           {
-            type: new Sequelize.DataTypes.STRING(512),
+            type: new Sequelize.DataTypes.STRING(1024),
           },
           { transaction }
         ),
