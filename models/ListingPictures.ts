@@ -29,7 +29,7 @@ ListingPictures.init(
       allowNull: true,
     },
     imgHash: {
-      type: new DataTypes.STRING(512),
+      type: new DataTypes.STRING(1024),
       allowNull: true,
     },
   },
