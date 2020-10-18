@@ -79,7 +79,7 @@ export async function prepareBrowser() {
     fs.mkdirSync(`${__dirname}/../../logs`)
   }
 
-  console.log(`✨ IP: ${await getIP()}`)
+  logMessage(`✨ IP: ${await getIP()}`, SEVERITY.Debug)
 }
 
 let _browserPromise: Promise<Browser> = null
@@ -101,7 +101,7 @@ function createBrowserAsync() {
   if (process.env.PROXY_URL) {
     const proxyUrls = process.env.PROXY_URL.split('|')
     const proxyUrl = proxyUrls[Math.floor(Math.random() * proxyUrls.length)]
-    console.log(`✨ Proxy: ${proxyUrl}`)
+    logMessage(`✨ Proxy: ${proxyUrl}`, SEVERITY.Debug)
     proxyArg = `--proxy-server=${proxyUrl}`
   }
 

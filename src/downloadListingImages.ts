@@ -3,12 +3,14 @@ import ListingPictures from '../models/ListingPictures'
 import proxiedFetch from './lib/proxiedFetch'
 import imageHash from 'node-image-hash'
 import { logMessage, SEVERITY } from './lib/monitoring-log'
+import { sequelize } from './db'
 
 async function downloadMissingListingImage() {
   const imgWithoutDownload = await ListingPictures.findOne({
     where: {
       imgHash: { [Op.eq]: null },
     },
+    order: sequelize.random(),
   })
 
   if (!imgWithoutDownload) return
@@ -30,5 +32,5 @@ export function setupDownloadListingImageTimer() {
     downloadMissingListingImage()
   }
 
-  setInterval(downloadMissingListingImage, 1000 * 10)
+  setInterval(downloadMissingListingImage, 1000 * 5)
 }

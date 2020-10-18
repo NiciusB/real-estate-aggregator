@@ -1,10 +1,11 @@
 import { sequelize } from './db'
 import { setupDownloadListingImageTimer } from './downloadListingImages'
+import { logMessage, SEVERITY } from './lib/monitoring-log'
 import { prepareBrowser } from './lib/proxiedFetch'
 import setupCrawlers from './sites/crawl_all'
 
 export default async function main() {
-  console.log(`✨ Aggregator started`)
+  logMessage(`✨ Aggregator started`, SEVERITY.Info)
 
   // Connect to db
   await sequelize.authenticate()

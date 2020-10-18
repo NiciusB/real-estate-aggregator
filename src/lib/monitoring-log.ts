@@ -1,5 +1,8 @@
+/* eslint-disable no-console */
+
 /* eslint-disable no-unused-vars */
 export enum SEVERITY {
+  Info,
   Error,
   Warning,
   Debug,
@@ -24,6 +27,10 @@ export async function logMessage(err: string | Error, severity: SEVERITY, contex
     }
     case SEVERITY.Debug: {
       console.debug(message, stack, context)
+      break
+    }
+    case SEVERITY.Info: {
+      console.log(message, stack, context)
       break
     }
     default:
