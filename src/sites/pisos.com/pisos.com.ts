@@ -56,6 +56,7 @@ async function getList(
               .replace('/nrds/', '/nrd/') // small to normal
               .replace('/nrd/', '/h700/') // normal to high quality
         )
+        .filter((picUrl) => picUrl !== '/Images/assets/nophoto_available-grid-dk.jpg')
         .map((picUrl) =>
           ListingPictures.findOrBuild({
             where: { listingId: listing.id, originalUrl: picUrl },
