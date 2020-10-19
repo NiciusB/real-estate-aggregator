@@ -5,4 +5,8 @@ export const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERN
   dialect: process.env.DB_DIALECT as Dialect,
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT),
+  define: {
+    charset: 'utf8',
+    collate: 'und-x-icu',
+  },
 })

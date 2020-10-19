@@ -10,6 +10,7 @@ export default async function main() {
   // Connect to db
   await sequelize.authenticate()
   await sequelize.sync()
+
   // Prepare puppeteer
   await prepareBrowser()
 
