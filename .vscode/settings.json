@@ -1,3 +1,10 @@
 {
+  "eslint.workingDirectories": [
+    "./packages/crawler"
+  ],
+  "files.watcherExclude": {
+      "**/node_modules/*/**": true
+  },
+  "editor.tabSize": 2,
   "files.eol": "\n"
 }
