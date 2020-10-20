@@ -1,7 +1,7 @@
 import { sequelize } from './db'
 import { logMessage, SEVERITY } from './lib/monitoring-log'
-import { prepareBrowser } from './lib/proxiedFetch'
 import setupCrawler from './crawl/setupCrawler'
+import setupApiServer from './api'
 
 export default async function main() {
   logMessage(`✨ Aggregator started`, SEVERITY.Info)
@@ -10,8 +10,9 @@ export default async function main() {
   await sequelize.authenticate()
   await sequelize.sync()
 
-  // Prepare puppeteer
-  await prepareBrowser()
+  if (process.env.DISABLE_CRAWLER !== 'true') {
+    setupCrawler()
+  }
 
-  setupCrawler()
+  setupApiServer()
 }

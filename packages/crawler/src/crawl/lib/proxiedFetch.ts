@@ -4,7 +4,7 @@ import { Browser } from 'puppeteer'
 import { JSDOM } from 'jsdom'
 import * as fs from 'fs'
 import getIP from './getIP'
-import { logMessage, SEVERITY } from './monitoring-log'
+import { logMessage, SEVERITY } from '../../lib/monitoring-log'
 
 puppeteer.use(StealthPlugin())
 

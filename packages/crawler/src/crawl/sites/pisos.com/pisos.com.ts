@@ -1,6 +1,6 @@
-import proxiedFetch from '../../../lib/proxiedFetch'
+import proxiedFetch from '../../lib/proxiedFetch'
 import getListingFromElement from '../../lib/crawler'
-import Listing, { ListingType } from '../../../../models/Listing'
+import { ListingType } from '../../../../models/Listing'
 import { titleToListingType } from '../../lib/utils'
 import ListingPictures from '../../../../models/ListingPictures'
 
@@ -8,10 +8,7 @@ export default async function crawlPisosCom(path: string, locationClue: string) 
   return getList(path, locationClue)
 }
 
-async function getList(
-  path: string,
-  locationClue: string
-): Promise<{ listings: Listing[]; listingPictures: ListingPictures[] }> {
+async function getList(path: string, locationClue: string) {
   const { body } = await proxiedFetch(`https://www.pisos.com/${path}`)
 
   const listingPromises = Array.from(body.querySelectorAll('#parrilla div.row[id]')).map(async (item) => {
@@ -48,7 +45,9 @@ async function getList(
 
     if (!listing) return
 
-    const listingPictures = await Promise.all(
+    await listing.save()
+
+    await Promise.allSettled(
       Array.from(item.querySelectorAll('.overInfo>img, .photo-main>img, .photo-secondary>img'))
         .map(
           (elm) =>
@@ -58,22 +57,13 @@ async function getList(
         )
         .filter((picUrl) => picUrl !== '/Images/assets/nophoto_available-grid-dk.jpg')
         .map((picUrl) =>
-          ListingPictures.findOrBuild({
-            where: { listingId: listing.id, originalUrl: picUrl },
-          }).then((r) => r[0])
+          ListingPictures.upsert({
+            listingId: listing.id,
+            originalUrl: picUrl,
+          })
         )
     )
-
-    return { listing, listingPictures }
   })
 
-  const rawListings = await Promise.all(listingPromises)
-
-  return {
-    listings: rawListings.map((l) => l.listing).filter(Boolean),
-    listingPictures: rawListings
-      .map((l) => l.listingPictures)
-      .flat()
-      .filter(Boolean),
-  }
+  await Promise.allSettled(listingPromises)
 }

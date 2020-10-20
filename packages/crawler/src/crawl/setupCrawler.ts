@@ -1,7 +1,11 @@
+import { prepareBrowser } from './lib/proxiedFetch'
 import crawlAllSites from './crawlAllSites'
 import { setupDownloadListingImageTimer } from './downloadListingImages'
 
-export default function setupCrawler() {
+export default async function setupCrawler() {
+  // Prepare puppeteer
+  await prepareBrowser()
+
   // Download images
   setupDownloadListingImageTimer()
 

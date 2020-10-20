@@ -1,7 +1,7 @@
 import { logMessage, SEVERITY } from '../../../lib/monitoring-log'
-import proxiedFetch from '../../../lib/proxiedFetch'
+import proxiedFetch from '../../lib/proxiedFetch'
 import getListingFromElement from '../../lib/crawler'
-import Listing, { ListingType } from '../../../../models/Listing'
+import { ListingType } from '../../../../models/Listing'
 import { titleToListingType } from '../../lib/utils'
 import ListingPictures from '../../../../models/ListingPictures'
 
@@ -9,10 +9,7 @@ export default async function crawlIdealista(path: string, locationClue: string)
   return getList(path, locationClue)
 }
 
-async function getList(
-  path: string,
-  locationClue: string
-): Promise<{ listings: Listing[]; listingPictures: ListingPictures[] }> {
+async function getList(path: string, locationClue: string) {
   const { page, body } = await proxiedFetch(`https://www.idealista.com/${path}/?ordenado-por=fecha-publicacion-desc`)
 
   if (body.innerHTML.includes('parece que estamos recibiendo muchas peticiones tuyas en poco tiempo')) {
@@ -20,8 +17,14 @@ async function getList(
     return null
   }
 
+  const rawListingPictures = (await page.evaluate(
+    `Object.entries(listingMultimediaGallery)
+      .map(([key, val]) => ({ siteListingId: key, picUrls: val.map(a => a.src) }))
+      `
+  )) as [{ siteListingId: string; picUrls: string[] }]
+
   const listingPromises = Array.from(body.querySelectorAll('main#main-content article.item')).map(async (item) => {
-    return getListingFromElement(item, 'idealista', locationClue, [
+    const listing = await getListingFromElement(item, 'idealista', locationClue, [
       {
         field: 'siteId',
         type: String,
@@ -47,29 +50,22 @@ async function getList(
         type: Number,
       },
     ])
+
+    if (!listing) return
+
+    await listing.save()
+
+    await Promise.allSettled(
+      rawListingPictures
+        .find((list) => list.siteListingId === listing.siteId)
+        .picUrls.map((originalUrl) =>
+          ListingPictures.upsert({
+            listingId: listing.id,
+            originalUrl,
+          })
+        )
+    )
   })
 
-  const listings = (await Promise.all(listingPromises)).filter(Boolean)
-
-  const rawListingPictures = (await page.evaluate(
-    `Object.entries(listingMultimediaGallery)
-      .map(([key, val]) => ({ listingId: key, picUrls: val.map(a => a.src) }))
-      `
-  )) as [{ listingId: string; picUrls: string[] }]
-
-  const listingPictures = await Promise.all(
-    rawListingPictures
-      .map((singleListingPics) =>
-        singleListingPics.picUrls.map(async (originalUrl) => {
-          return (
-            await ListingPictures.findOrBuild({
-              where: { listingId: singleListingPics.listingId, originalUrl },
-            })
-          )[0]
-        })
-      )
-      .flat()
-  )
-
-  return { listings, listingPictures }
+  await Promise.allSettled(listingPromises)
 }

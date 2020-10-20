@@ -1,5 +1,3 @@
-import Listing from '../../models/Listing'
-import ListingPictures from '../../models/ListingPictures'
 import { logMessage, SEVERITY } from '../lib/monitoring-log'
 import crawlFotocasa from './sites/fotocasa/fotocasa'
 import crawlIdealista from './sites/idealista/idealista'
@@ -16,10 +14,7 @@ type CrawlOptions = {
 }
 
 async function crawlAll(options: CrawlOptions) {
-  const promises: Promise<{
-    listings: Listing[]
-    listingPictures: ListingPictures[]
-  }>[] = []
+  const promises: Promise<unknown>[] = []
 
   if (options.idealista) {
     options.idealista.forEach((opt) => {
@@ -37,27 +32,9 @@ async function crawlAll(options: CrawlOptions) {
     })
   }
 
-  const results = (await Promise.allSettled(promises))
-    .map((p) => (p.status === 'fulfilled' ? p.value : null))
-    .filter(Boolean)
+  await Promise.allSettled(promises)
 
   logMessage('🐸 Finished crawling all sites!', SEVERITY.Debug)
-
-  // Save to DB
-  await Promise.allSettled(
-    results
-      .map((res) => res.listings)
-      .flat()
-      .map((res) => res?.save())
-  )
-  await Promise.allSettled(
-    results
-      .map((res) => res.listingPictures)
-      .flat()
-      .map((res) => res?.save())
-  )
-
-  logMessage('🐸 Finished saving new data!', SEVERITY.Debug)
 }
 
 export default function setupCrawlers(options: CrawlOptions) {

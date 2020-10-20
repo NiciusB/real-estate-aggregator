@@ -1,8 +1,7 @@
 import { Op } from 'sequelize'
 import ListingPictures from '../../models/ListingPictures'
-import proxiedFetch from '../lib/proxiedFetch'
+import proxiedFetch from './lib/proxiedFetch'
 import imageHash from 'node-image-hash'
-import { logMessage, SEVERITY } from '../lib/monitoring-log'
 import { sequelize } from '../db'
 
 async function downloadMissingListingImage() {
@@ -23,8 +22,6 @@ async function downloadMissingListingImage() {
   imgWithoutDownload.imgHash = imgHash
   imgWithoutDownload.imgBlob = imgBuffer
   await imgWithoutDownload.save()
-
-  logMessage('🐸 Finished saving new listing image!', SEVERITY.Debug)
 }
 
 export function setupDownloadListingImageTimer() {
