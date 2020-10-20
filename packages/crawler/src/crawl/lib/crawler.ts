@@ -1,7 +1,7 @@
 import { logMessage, SEVERITY } from '../../lib/monitoring-log'
-import { parseNumber } from '../utils'
+import { parseNumber } from './utils'
 import Listing from '../../../models/Listing'
-import geocodingApi from '../geocodingApi'
+import geocodingApi from './geocodingApi'
 
 type Strategy = {
   field: string

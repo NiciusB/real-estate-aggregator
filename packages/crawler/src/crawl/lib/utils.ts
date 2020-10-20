@@ -1,4 +1,4 @@
-import { ListingType } from '../../models/Listing'
+import { ListingType } from '../../../models/Listing'
 
 export function parseNumber(textContent?: string): number | null {
   if (!textContent) return null

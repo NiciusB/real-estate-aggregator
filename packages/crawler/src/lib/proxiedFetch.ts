@@ -44,7 +44,7 @@ export default async function proxiedFetch(url: string) {
 async function autoScrollToBottom(page) {
   await page.evaluate(async () => {
     await new Promise((resolve, reject) => {
-      const scrollCheckInterval = 1000
+      const scrollCheckInterval = 400
       const maxScrollTime = 1000 * 25
 
       let lastHeight = 0

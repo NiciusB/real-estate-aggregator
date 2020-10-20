@@ -1,9 +1,9 @@
-import proxiedFetch from '../../lib/proxiedFetch'
-import Listing from '../../../models/Listing'
+import proxiedFetch from '../../../lib/proxiedFetch'
+import Listing from '../../../../models/Listing'
 import { parseNumber, titleToListingType } from '../../lib/utils'
-import ListingPictures from '../../../models/ListingPictures'
+import ListingPictures from '../../../../models/ListingPictures'
 import { FotocasaApi } from './fotocasa.types'
-import { logMessage, SEVERITY } from '../../lib/monitoring-log'
+import { logMessage, SEVERITY } from '../../../lib/monitoring-log'
 
 export default async function crawlFotocasa(path: string) {
   return getList(path)

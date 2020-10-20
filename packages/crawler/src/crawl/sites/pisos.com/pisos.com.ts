@@ -1,8 +1,8 @@
-import proxiedFetch from '../../lib/proxiedFetch'
-import getListingFromElement from '../../lib/crawler/crawler'
-import Listing, { ListingType } from '../../../models/Listing'
+import proxiedFetch from '../../../lib/proxiedFetch'
+import getListingFromElement from '../../lib/crawler'
+import Listing, { ListingType } from '../../../../models/Listing'
 import { titleToListingType } from '../../lib/utils'
-import ListingPictures from '../../../models/ListingPictures'
+import ListingPictures from '../../../../models/ListingPictures'
 
 export default async function crawlPisosCom(path: string, locationClue: string) {
   return getList(path, locationClue)

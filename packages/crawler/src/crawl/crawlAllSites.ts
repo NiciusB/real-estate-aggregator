@@ -1,9 +1,9 @@
 import Listing from '../../models/Listing'
 import ListingPictures from '../../models/ListingPictures'
 import { logMessage, SEVERITY } from '../lib/monitoring-log'
-import crawlFotocasa from './fotocasa/fotocasa'
-import crawlIdealista from './idealista/idealista'
-import crawlPisosCom from './pisos.com/pisos.com'
+import crawlFotocasa from './sites/fotocasa/fotocasa'
+import crawlIdealista from './sites/idealista/idealista'
+import crawlPisosCom from './sites/pisos.com/pisos.com'
 
 type SiteOptions = {
   path: string

@@ -1,9 +1,9 @@
 import { Op } from 'sequelize'
-import ListingPictures from '../models/ListingPictures'
-import proxiedFetch from './lib/proxiedFetch'
+import ListingPictures from '../../models/ListingPictures'
+import proxiedFetch from '../lib/proxiedFetch'
 import imageHash from 'node-image-hash'
-import { logMessage, SEVERITY } from './lib/monitoring-log'
-import { sequelize } from './db'
+import { logMessage, SEVERITY } from '../lib/monitoring-log'
+import { sequelize } from '../db'
 
 async function downloadMissingListingImage() {
   const imgWithoutDownload = await ListingPictures.findOne({
