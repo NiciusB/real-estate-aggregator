@@ -5,8 +5,13 @@
     <h1>Error</h1>
     <p>{error}</p>
   {:else}
-    {#each listings as listing}
-      <p>{JSON.stringify(listing)}</p>
+    {#each listings as { listing, pictures }}
+      <h2>{listing.type}</h2>
+      <h2>{listing.eurPrice.toLocaleString()} EUR</h2>
+      <h2>{listing.location}</h2>
+      {#each pictures as picture}
+        <img src={picture.url} alt="" class="listing-picture" />
+      {/each}
     {/each}
   {/if}
 </main>
@@ -50,5 +55,11 @@
     main {
       max-width: none;
     }
+  }
+
+  img.listing-picture {
+    max-width: 30rem;
+    max-height: 30rem;
+    height: auto;
   }
 </style>

@@ -9,6 +9,12 @@ const app = express()
 const port = parseInt(process.env.API_PORT)
 const apiUrl = `http://localhost:${port}`
 
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Headers', 'content-type')
+  next()
+})
+
 app.get('/', (req, res) => {
   res.redirect('/listings')
 })
@@ -21,10 +27,10 @@ app.get('/pic/:picID', async (req, res) => {
 })
 
 app.get('/listings', async (req, res) => {
-  const listings = await Listing.findAll({ limit: 10, order: sequelize.random() })
-  const listing = await Promise.all(listings.map((l) => getListingData(l.id)))
+  const listingsRaw = await Listing.findAll({ limit: 10, order: sequelize.random() })
+  const listings = await Promise.all(listingsRaw.map((l) => getListingData(l.id)))
 
-  res.json({ listing })
+  res.json({ listings })
 })
 
 export default function setupApiServer() {
