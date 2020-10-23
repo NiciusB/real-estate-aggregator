@@ -1,10 +1,17 @@
 {
   "eslint.workingDirectories": [
-    "./packages/crawler"
+    "./packages/crawler",
+    "./packages/frontend"
   ],
   "files.watcherExclude": {
-      "**/node_modules/*/**": true
+    "**/node_modules/*/**": true
   },
   "editor.tabSize": 2,
-  "files.eol": "\n"
+  "files.eol": "\n",
+  // For svelte
+  "eslint.validate": [
+    "javascript",
+    "svelte"
+  ],
+  "editor.formatOnSave": true
 }
