@@ -7,7 +7,7 @@ import { Op } from 'sequelize'
 
 const app = express()
 const port = parseInt(process.env.API_PORT)
-const apiUrl = `http://localhost:${port}`
+const apiUrl = process.env.API_BASE_URL
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
