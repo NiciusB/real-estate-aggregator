@@ -1,9 +1,0 @@
-{
-  "svelteSortOrder" : "markup-scripts-styles",
-  "svelteSingleQuote": true,
-  "svelteJsxSingleQuote": true,
-  "trailingComma": "es5",
-  "tabWidth": 2,
-  "semi": false,
-  "singleQuote": true
-}
